@@ -1,26 +1,57 @@
 import { ArrowRight, PaperPlane, PaperPlaneTilt } from "@phosphor-icons/react";
 import PromptCountdown from "./PromptCountdown";
 import { useEffect, useState } from "react";
+import useGetMostRecentPrompt from "@/hooks/useGetMostRecentPrompt";
+import { useUser } from "@clerk/nextjs";
 
 type Props = {
   action: () => void;
+  prompt: Prompt;
+  actionSkipAction: () => void;
 };
 
 type Prompt = {
+  id: string;
   prompt: string;
 };
 
-export default function PromptModal({ action }: Props) {
-  const [prompt, setPrompt] = useState<Prompt | null>(null);
+export default function PromptModal({
+  action,
+  prompt,
+  actionSkipAction,
+}: Props) {
   const [answer, setAnswer] = useState<string>("");
+  const { user } = useUser();
 
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/social/getMostRecentPrompt`)
-      .then((response) => response.json())
-      .then((data) => {
-        setPrompt(data.prompt);
-      });
-  }, []);
+  const answerPrompt = async () => {
+    if (!prompt) return;
+    if (!user) return;
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/social/answerPrompt`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user.emailAddresses[0].emailAddress,
+            promptId: prompt.id,
+            answer: answer,
+          }),
+        }
+      );
+      const data = await res.json();
+      console.log(data);
+
+      if (data.success) {
+        action();
+        localStorage.setItem("answeredPrompt", JSON.stringify(true));
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   console.log(prompt);
   return (
@@ -33,22 +64,23 @@ export default function PromptModal({ action }: Props) {
 
             {prompt && (
               <div className="flex-[3]">
-<p className="text-light-400">{prompt.prompt}</p>
+                <p className="text-light-400">{prompt.prompt}</p>
               </div>
             )}
 
-
-              <textarea
-                className="w-full h-32 bg-dark-400 text-light-400 rounded-lg p-2 my-6 text-sm outline-dark-300 duration-200"
-                placeholder="Share your vibe"
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-              />
-              
+            <textarea
+              className="w-full h-32 bg-dark-400 text-light-400 rounded-lg p-2 my-6 text-sm outline-dark-300 duration-200"
+              placeholder="Share your vibe"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+            />
           </div>
           <div>
             <a
-              onClick={action}
+              onClick={() => {
+                answerPrompt();
+                action();
+              }}
               className="cursor-pointer border-2 border-dashed border-dark-300 bg-dark-400 text-light-500 rounded-lg px-4 py-2 w-full h-fit flex flex-1 items-center justify-center hover:bg-dark-500 hover:text-light-500 transition-all"
             >
               <PaperPlaneTilt size={16} weight="fill" />
@@ -58,7 +90,7 @@ export default function PromptModal({ action }: Props) {
         </div>
         <div className="flex gap-2">
           <a
-            onClick={action}
+            onClick={actionSkipAction}
             className="cursor-pointer border-[0.5px] border-light-500 bg-light-500 text-dark-500 rounded-lg px-4 py-2 w-fit h-fit flex items-center hover:bg-dark-500 hover:text-light-500 transition-all"
           >
             <ArrowRight size={16} weight="fill" />

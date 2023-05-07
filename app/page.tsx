@@ -2,10 +2,11 @@
 import { UserButton, useAuth, useUser, SignInButton } from "@clerk/nextjs";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { AppleLogo, ChatText, Eye, Heart } from "@phosphor-icons/react";
+import { AppleLogo, ChatText, Eye, Heart, PaperPlaneTilt } from "@phosphor-icons/react";
 import { COLORS } from "@/utils/colors";
 import InitialExploreModal from "@/components/InitialExploreModal";
 import PromptModal from "@/components/PromptModal";
+import useGetMostRecentPrompt from "@/hooks/useGetMostRecentPrompt";
 
 export type Post = {
   id: string;
@@ -50,21 +51,58 @@ export default function Home() {
 
   const [showInitialModal, setShowInitialModal] = useState<boolean>(true);
   const [showPromptModal, setShowPromptModal] = useState<boolean>(false);
+  const [answeredInitialPrompt, setAnsweredInitialPrompt] =
+    useState<boolean>(false);
   const [posts, setPosts] = useState<Post[] | null>(null);
 
   const [sendToDb, setSendToDb] = useState<boolean>(false);
   const [sentToDb, setSentToDb] = useState<boolean>(false);
+  const { prompt, loading: promptLoading } = useGetMostRecentPrompt();
+
+  useEffect(() => {
+    // store a value to decide if the user has seen the modals before
+    if (typeof window !== "undefined") {
+      // Access localStorage only when the window object is available
+      setShowInitialModal(
+        JSON.parse(localStorage.getItem("showInitialModal") || "true")
+      );
+      setShowPromptModal(
+        JSON.parse(localStorage.getItem("showPromptModal") || "false")
+      );
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       // Access localStorage only when the window object is available
-      const storedSendToDb = JSON.parse(localStorage.getItem("sendToDb") || "false");
+      const storedSendToDb = JSON.parse(
+        localStorage.getItem("sendToDb") || "false"
+      );
       setSendToDb(storedSendToDb);
 
-      const storedSentToDb = JSON.parse(localStorage.getItem("sentToDb") || "false");
+      const storedSentToDb = JSON.parse(
+        localStorage.getItem("sentToDb") || "false"
+      );
       setSentToDb(storedSentToDb);
     }
   }, []);
+
+  useEffect(() => {
+    const hasAnsweredPrompt = JSON.parse(localStorage.getItem("answeredPrompt") || "false");
+    if (isSignedIn && !hasAnsweredPrompt && prompt) {
+      localStorage.setItem("showInitialModal", JSON.stringify(false));
+      setShowInitialModal(false);
+      localStorage.setItem("showPromptModal", JSON.stringify(true));
+      setShowPromptModal(true);
+    }
+
+    if (isSignedIn && hasAnsweredPrompt) {
+      localStorage.setItem("showInitialModal", JSON.stringify(false));
+      setShowInitialModal(false);
+      localStorage.setItem("showPromptModal", JSON.stringify(false));
+      setShowPromptModal(false);
+    }
+  }, [isSignedIn]);
 
   // fetch posts
   useEffect(() => {
@@ -89,7 +127,7 @@ export default function Home() {
     }
 
     if (isSignedIn && user && !sentToDb) {
-      setSendToDb(true);    
+      setSendToDb(true);
     }
   }, [isSignedIn, user, emailAddress, firstName, lastName, sentToDb]);
 
@@ -124,24 +162,34 @@ export default function Home() {
   if (!posts) {
     return <p>Loading...</p>;
   }
+  if (promptLoading || !prompt) {
+    return <p>Loading...</p>;
+  }
 
   const nextModalFlow = () => {
     setShowInitialModal(false);
     setShowPromptModal(true);
-  }
+  };
+
+  console.log(user)
 
   return (
     <div className="relative overflow-y-hidden h-screen">
-{/* {showInitialModal && <InitialExploreModal action={nextModalFlow}/>} */}
-      {/* {showPromptModal && <PromptModal action={() => setShowPromptModal(false)}/>} */}
-      <main className="flex flex-row max-w-4xl mx-auto min-h-screen h-screen">
+      {showInitialModal && <InitialExploreModal action={nextModalFlow} />}
+      {user && showPromptModal && (
+        <PromptModal
+          prompt={prompt}
+          action={() => {
+            setShowPromptModal(false);
+            setAnsweredInitialPrompt(true);
+          }}
+          actionSkipAction={() => setShowPromptModal(false)}
+        />
+      )}
+      <main className="flex flex-row max-w-5xl mx-auto min-h-screen h-screen">
         <div className="flex-1 border-r-[0.5px] border-dark-400 h-full flex flex-col items-center gap-4 pt-4">
-          {!isSignedIn && (
-            <SignInButton/> 
-          )}
-          {isSignedIn && (
-            <UserButton />
-          )}
+          {!isSignedIn && <SignInButton mode="modal" />}
+          {isSignedIn && <UserButton />}
           <a
             href="#"
             className="bg-light-500 text-dark-500 rounded-lg px-4 py-2 flex items-center"
@@ -150,7 +198,7 @@ export default function Home() {
             <span className="ml-2 font-medium">Download</span>
           </a>
         </div>
-        <div className="flex-[2] :flex-[4] flex flex-col gap-2 px-2 overflow-y-auto h-full">
+        <div className="flex-[2] flex flex-col gap-2 px-2 overflow-y-auto h-full">
           {posts.map((post) => (
             <div
               key={post.id}
@@ -208,7 +256,27 @@ export default function Home() {
             </div>
           ))}
         </div>
-        <div className="flex-1 border-l-[0.5px] border-dark-400 flex justify-center h-full"></div>
+        <div className="flex-1 border-l-[0.5px] border-dark-400 flex justify-center h-full px-2 pt-4">
+          {!showPromptModal && (
+          <div className="p-4 border-2 border-dark-300 border-dashed rounded-xl h-fit">
+            <p className="text-dark-300 font-bold text-xs">Share you vibes</p>
+
+            {prompt && (
+              <div className="flex-[3]">
+                <p className="text-light-400 text-sm">{prompt.prompt}</p>
+              </div>
+            )}
+              <a
+                onClick={() => setShowPromptModal(true)}
+              className="cursor-pointer border-2 border-dashed border-dark-300 bg-dark-400 text-light-500 rounded-lg px-4 py-2 w-full h-fit flex flex-1 items-center justify-center hover:bg-dark-500 hover:text-light-500 transition-all"
+            >
+              <PaperPlaneTilt size={16} weight="fill" />
+              <span className="ml-2 font-medium text-xs">Share your vibe</span>
+            </a>
+          </div>
+
+          )}
+        </div>
       </main>
     </div>
   );
