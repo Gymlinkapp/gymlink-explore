@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^4.17.1",
+    "@clerk/themes": "^1.6.4",
     "@phosphor-icons/react": "^2.0.9",
     "@types/node": "20.1.0",
     "@types/react": "18.2.6",

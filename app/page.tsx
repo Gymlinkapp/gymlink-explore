@@ -1,5 +1,5 @@
 "use client";
-import { UserButton, useAuth, useUser } from "@clerk/nextjs";
+import { UserButton, useAuth, useUser, SignInButton } from "@clerk/nextjs";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { AppleLogo, ChatText, Eye, Heart } from "@phosphor-icons/react";
@@ -47,11 +47,24 @@ export default function Home() {
   const [emailAddress, setEmailAddress] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
-  const [sendToDb, setSendToDb] = useState<boolean>(false);
+
   const [showInitialModal, setShowInitialModal] = useState<boolean>(true);
   const [showPromptModal, setShowPromptModal] = useState<boolean>(false);
-
   const [posts, setPosts] = useState<Post[] | null>(null);
+
+  const [sendToDb, setSendToDb] = useState<boolean>(false);
+  const [sentToDb, setSentToDb] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Access localStorage only when the window object is available
+      const storedSendToDb = JSON.parse(localStorage.getItem("sendToDb") || "false");
+      setSendToDb(storedSendToDb);
+
+      const storedSentToDb = JSON.parse(localStorage.getItem("sentToDb") || "false");
+      setSentToDb(storedSentToDb);
+    }
+  }, []);
 
   // fetch posts
   useEffect(() => {
@@ -75,37 +88,38 @@ export default function Home() {
       setLastName(user.lastName);
     }
 
-    if (emailAddress && firstName && lastName) {
-      setSendToDb(true);
+    if (isSignedIn && user && !sentToDb) {
+      setSendToDb(true);    
     }
-  }, [isSignedIn, user, emailAddress, firstName, lastName]);
+  }, [isSignedIn, user, emailAddress, firstName, lastName, sentToDb]);
 
-  /* useEffect(() => { */
-  /*   if (sendToDb) { */
-  /*     fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/baseWebAccount`, { */
-  /*       method: "POST", */
-  /*       body: JSON.stringify({ */
-  /*         baseWebAccount: true, */
-  /*         email: emailAddress, */
-  /*         firstName: firstName, */
-  /*         lastName: lastName, */
-  /*       }), */
-  /*     }) */
-  /*       .then((response) => { */
-  /*         if (response.ok) { */
-  /*           console.log("User created in db"); */
-  /*           setSendToDb(false); */
-  /*         } */
-  /*       }) */
-  /*       .catch((error) => { */
-  /*         console.log(error); */
-  /*       }); */
-  /*   } */
-  /* }, [sendToDb]); */
-
-  if (!isLoaded || !user) {
-    return null;
-  }
+  useEffect(() => {
+    if (sendToDb && !sentToDb) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/baseWebAccount`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          baseWebAccount: true,
+          email: emailAddress,
+          firstName: firstName,
+          lastName: lastName,
+        }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            console.log("User created in db");
+            localStorage.setItem("sentToDb", JSON.stringify(true));
+            setSendToDb(false);
+            setSentToDb(true);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  }, [sendToDb]);
 
   if (!posts) {
     return <p>Loading...</p>;
@@ -118,11 +132,16 @@ export default function Home() {
 
   return (
     <div className="relative overflow-y-hidden h-screen">
-      {showInitialModal && <InitialExploreModal action={nextModalFlow}/>}
-      {showPromptModal && <PromptModal action={() => setShowPromptModal(false)}/>}
+{/* {showInitialModal && <InitialExploreModal action={nextModalFlow}/>} */}
+      {/* {showPromptModal && <PromptModal action={() => setShowPromptModal(false)}/>} */}
       <main className="flex flex-row max-w-4xl mx-auto min-h-screen h-screen">
         <div className="flex-1 border-r-[0.5px] border-dark-400 h-full flex flex-col items-center gap-4 pt-4">
-          <UserButton />
+          {!isSignedIn && (
+            <SignInButton/> 
+          )}
+          {isSignedIn && (
+            <UserButton />
+          )}
           <a
             href="#"
             className="bg-light-500 text-dark-500 rounded-lg px-4 py-2 flex items-center"
@@ -131,7 +150,7 @@ export default function Home() {
             <span className="ml-2 font-medium">Download</span>
           </a>
         </div>
-        <div className="flex-[4] flex flex-col gap-2 px-2 overflow-y-auto h-full">
+        <div className="flex-[2] :flex-[4] flex flex-col gap-2 px-2 overflow-y-auto h-full">
           {posts.map((post) => (
             <div
               key={post.id}

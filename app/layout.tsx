@@ -1,6 +1,7 @@
 import { ClerkProvider } from '@clerk/nextjs/dist/components.server'
 import './globals.css'
 import { Montserrat } from 'next/font/google'
+import { dark } from '@clerk/themes'
 
 const montserrat = Montserrat({ subsets: ['latin'] })
 
@@ -15,8 +16,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
+    <ClerkProvider appearance={{
+      baseTheme: dark,
+    }}>
+      <html lang="en" className='bg-dark-500'>
         <body className={montserrat.className}>{children}</body>
       </html>
     </ClerkProvider>
