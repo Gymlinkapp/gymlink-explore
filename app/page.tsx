@@ -2,11 +2,19 @@
 import { UserButton, useAuth, useUser, SignInButton } from "@clerk/nextjs";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { AppleLogo, ChatText, Eye, Heart, PaperPlaneTilt } from "@phosphor-icons/react";
+import {
+  AppleLogo,
+  ChatText,
+  Eye,
+  Heart,
+  PaperPlaneTilt,
+} from "@phosphor-icons/react";
 import { COLORS } from "@/utils/colors";
 import InitialExploreModal from "@/components/InitialExploreModal";
 import PromptModal from "@/components/PromptModal";
 import useGetMostRecentPrompt from "@/hooks/useGetMostRecentPrompt";
+import useGetUserByEmail from "@/hooks/useGetUserByEmail";
+import syncDailyPrompt from "@/utils/syncDailyPrompt";
 
 export type Post = {
   id: string;
@@ -58,6 +66,9 @@ export default function Home() {
   const [sendToDb, setSendToDb] = useState<boolean>(false);
   const [sentToDb, setSentToDb] = useState<boolean>(false);
   const { prompt, loading: promptLoading } = useGetMostRecentPrompt();
+  const { user: userFromGymlink, loading: userLoading } = useGetUserByEmail(
+    user?.emailAddresses[0].emailAddress || emailAddress
+  );
 
   useEffect(() => {
     // store a value to decide if the user has seen the modals before
@@ -88,7 +99,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const hasAnsweredPrompt = JSON.parse(localStorage.getItem("answeredPrompt") || "false");
+    const hasAnsweredPrompt = JSON.parse(
+      localStorage.getItem("answeredPrompt") || "false"
+    );
+    setAnsweredInitialPrompt(hasAnsweredPrompt);
     if (isSignedIn && !hasAnsweredPrompt && prompt) {
       localStorage.setItem("showInitialModal", JSON.stringify(false));
       setShowInitialModal(false);
@@ -171,7 +185,7 @@ export default function Home() {
     setShowPromptModal(true);
   };
 
-  console.log(user)
+  console.log(userFromGymlink);
 
   return (
     <div className="relative overflow-y-hidden h-screen">
@@ -249,7 +263,7 @@ export default function Home() {
                       weight="fill"
                       color={COLORS.tertiaryDark}
                     />
-                  }
+}
                   stat={post.comments?.length}
                 />
               </div>
@@ -258,23 +272,31 @@ export default function Home() {
         </div>
         <div className="flex-1 border-l-[0.5px] border-dark-400 flex justify-center h-full px-2 pt-4">
           {!showPromptModal && (
-          <div className="p-4 border-2 border-dark-300 border-dashed rounded-xl h-fit">
-            <p className="text-dark-300 font-bold text-xs">Share you vibes</p>
+            <div className="p-4 border-2 border-dark-300 border-dashed rounded-xl h-fit">
+              <p className="text-dark-300 font-bold text-xs">Share you vibes</p>
 
-            {prompt && (
-              <div className="flex-[3]">
-                <p className="text-light-400 text-sm">{prompt.prompt}</p>
-              </div>
-            )}
-              <a
-                onClick={() => setShowPromptModal(true)}
-              className="cursor-pointer border-2 border-dashed border-dark-300 bg-dark-400 text-light-500 rounded-lg px-4 py-2 w-full h-fit flex flex-1 items-center justify-center hover:bg-dark-500 hover:text-light-500 transition-all"
-            >
-              <PaperPlaneTilt size={16} weight="fill" />
-              <span className="ml-2 font-medium text-xs">Share your vibe</span>
-            </a>
-          </div>
+              {prompt && (
+                <div className="flex-[3]">
+                  <p className="text-light-400 text-sm">{prompt.prompt}</p>
+                </div>
+              )}
+              {!answeredInitialPrompt && (
+                <a
+                  onClick={() => setShowPromptModal(true)}
+                  className="cursor-pointer border-2 border-dashed border-dark-300 bg-dark-400 text-light-500 rounded-lg px-4 py-2 w-full h-fit flex flex-1 items-center justify-center hover:bg-dark-500 hover:text-light-500 transition-all"
+                >
+                  <PaperPlaneTilt size={16} weight="fill" />
+                  <span className="ml-2 font-medium text-xs">
+                    Share your vibe
+                  </span>
+                </a>
+              )}
 
+              {answeredInitialPrompt && userFromGymlink && userFromGymlink.userPrompts &&  (
+                                
+                  <p className="text-light-500 text-base mt-4">{syncDailyPrompt(prompt.id, userFromGymlink.userPrompts)?.answer}</p>
+              )}
+            </div>
           )}
         </div>
       </main>
