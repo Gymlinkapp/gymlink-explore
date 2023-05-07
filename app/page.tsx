@@ -198,7 +198,7 @@ export default function Home() {
         />
       )}
       <main className="flex flex-row max-w-5xl mx-auto min-h-screen h-screen relative">
-        <button onClick={() => setCreatePost(!createPost)} className="absolute bottom-16 right-4 bg-accent p-6 rounded-full">
+        <button onClick={() => setCreatePost(!createPost)} className="absolute bottom-20 right-4 bg-accent p-6 rounded-full">
           <Plus className="text-light-500" size={20} />
         </button>
         <div className="hidden md:flex flex-1 border-r-[0.5px] border-dark-400 h-full flex-col items-center gap-4 pt-4">
