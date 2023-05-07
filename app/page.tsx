@@ -75,7 +75,7 @@ export default function Home() {
     user?.emailAddresses[0].emailAddress || emailAddress
   );
   const [refreshKey, setRefreshKey] = useState<number>(0);
-  const [posts] = useAllPosts(refreshKey);
+  const {posts, loading: postsLoading} = useAllPosts(refreshKey);
 
   useEffect(() => {
     // store a value to decide if the user has seen the modals before
@@ -176,12 +176,16 @@ export default function Home() {
     }
   }, [sendToDb]);
 
-  if (!posts || promptLoading || !prompt) {
+  if (!posts || postsLoading || promptLoading || !prompt) {
     return <SkeletonPosts/>
   }
 
   return (
     <div className="relative overflow-y-hidden h-screen">
+      {/* <div className="fixed bottom-0 left-0 w-full h-16 bg-[url('/init-modal-bg.png')] z-40 bg-cover"> */}
+      {/*  <div className="w-full h-full bg-dark-400/50"/> */}
+      {/*   <p className="z-50">Be sure to download the official Gymlink app to experience the full features and find nearby gym goers!</p> */}
+      {/* </div> */}
       {showInitialModal && <InitialExploreModal />}
       {user && showPromptModal && (
         <PromptModal
@@ -224,7 +228,7 @@ export default function Home() {
           {createPost && userFromGymlink &&  <CreatePost userId={userFromGymlink.id} setRefreshKey={setRefreshKey} />}
           <ul className="overflow-y-auto flex flex-col gap-2">
             
-          {posts.map((post) => (
+          {posts.map((post: Post) => (
             <li
               key={post.id}
               className="flex flex-col bg-dark-400 p-6 rounded-xl"
