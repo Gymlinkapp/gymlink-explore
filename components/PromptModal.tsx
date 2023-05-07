@@ -42,18 +42,16 @@ export default function PromptModal({
         }
       );
       const data = await res.json();
-      console.log(data);
 
+      localStorage.setItem("answeredPrompt", JSON.stringify(true));
       if (data.success) {
         action();
-        localStorage.setItem("answeredPrompt", JSON.stringify(true));
       }
     } catch (err) {
       console.log(err);
     }
   };
 
-  console.log(prompt);
   return (
     <div className="absolute animate-fadeIn inset-0 bg-dark-400/75 w-full h-full z-50 grid place-items-center">
       <div className="animate-moveIn w-3/4 md:w-1/2 lg:w-1/3 flex flex-col items-end gap-2 overflow-hidden">

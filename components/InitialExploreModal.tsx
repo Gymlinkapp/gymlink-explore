@@ -2,14 +2,10 @@ import { SignInButton } from "@clerk/nextjs";
 import { AppleLogo, ArrowRight } from "@phosphor-icons/react";
 import Image from "next/image";
 
-type Props = {
-  action: () => void;
-};
-
-export default function InitialExploreModal({ action }: Props) {
+export default function InitialExploreModal() {
   return (
     <div className="absolute animate-fadeIn inset-0 bg-dark-400/75 w-full h-full z-50 grid place-items-center">
-      <div className="animate-moveIn w-3/4 md:w-1/2 lg:w-1/3 h-1/2 bg-dark-500 rounded-3xl flex flex-col overflow-hidden">
+      <div className="animate-moveIn w-3/4 md:w-1/2 lg:w-1/3 h-3/4 md:h-1/2 bg-dark-500 rounded-3xl flex flex-col overflow-hidden">
         <div className="h-1/4 grid place-items-center relative flex-1">
           <Image
             src="/init-modal-bg.png"
@@ -26,24 +22,20 @@ export default function InitialExploreModal({ action }: Props) {
             find like-minded gym goers nearby.
           </p>
           <p>
-            Get a sneak peek at our community&apos;s posts, questions, and
-            answers.
-          </p>
-          <p>
             Sign up and join the community to start posting and asking your own
             questions. Dowload the app to get the fullest experience.
           </p>
         </div>
 
-        <div className="flex-[0.5] px-6 flex w-full justify-end gap-2">
+        <div className="flex-[0.5] px-6 flex flex-col md:flex-row mb-4 md:mb-0 w-full justify-end gap-2">
           <a
-            href="#"
-            className="border-[0.5px] border-light-500 text-light-500 rounded-lg px-4 py-2 w-fit h-fit flex items-center hover:bg-light-500 hover:text-dark-500 transition-all"
+            href="https://testflight.apple.com/join/NTM6DRrW"
+            className="border-[0.5px] border-light-500 text-light-500 rounded-lg px-4 py-2 w-full md:w-fit h-fit flex items-center hover:bg-light-500 hover:text-dark-500 transition-all"
           >
             <AppleLogo size={16} weight="fill" />
             <span className="ml-2 font-medium">Download</span>
           </a>
-          <div className="px-4 py-2 bg-light-500 text-dark-500 h-fit rounded-lg border-[0.5px] border-light-500 flex gap-2 items-center">
+          <div className="px-4 py-2 bg-light-500 text-dark-500 w-full md:w-fit h-fit rounded-lg border-[0.5px] border-light-500 flex gap-2 items-center">
             <ArrowRight size={16} weight="bold" />
           <SignInButton mode="modal">Get Started</SignInButton>
           </div>

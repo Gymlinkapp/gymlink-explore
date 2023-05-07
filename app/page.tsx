@@ -8,6 +8,7 @@ import {
   Eye,
   Heart,
   PaperPlaneTilt,
+  Plus,
 } from "@phosphor-icons/react";
 import { COLORS } from "@/utils/colors";
 import InitialExploreModal from "@/components/InitialExploreModal";
@@ -15,6 +16,10 @@ import PromptModal from "@/components/PromptModal";
 import useGetMostRecentPrompt from "@/hooks/useGetMostRecentPrompt";
 import useGetUserByEmail from "@/hooks/useGetUserByEmail";
 import syncDailyPrompt from "@/utils/syncDailyPrompt";
+import CreatePost from "@/components/CreatePost";
+import useAllPosts from "@/hooks/usePosts";
+import SkeletonPosts from "@/components/skeletonPosts";
+import PromptCountdown from "@/components/PromptCountdown";
 
 export type Post = {
   id: string;
@@ -61,14 +66,16 @@ export default function Home() {
   const [showPromptModal, setShowPromptModal] = useState<boolean>(false);
   const [answeredInitialPrompt, setAnsweredInitialPrompt] =
     useState<boolean>(false);
-  const [posts, setPosts] = useState<Post[] | null>(null);
 
   const [sendToDb, setSendToDb] = useState<boolean>(false);
   const [sentToDb, setSentToDb] = useState<boolean>(false);
+  const [createPost, setCreatePost] = useState<boolean>(false);
   const { prompt, loading: promptLoading } = useGetMostRecentPrompt();
   const { user: userFromGymlink, loading: userLoading } = useGetUserByEmail(
     user?.emailAddresses[0].emailAddress || emailAddress
   );
+  const [refreshKey, setRefreshKey] = useState<number>(0);
+  const [posts] = useAllPosts(refreshKey);
 
   useEffect(() => {
     // store a value to decide if the user has seen the modals before
@@ -103,6 +110,10 @@ export default function Home() {
       localStorage.getItem("answeredPrompt") || "false"
     );
     setAnsweredInitialPrompt(hasAnsweredPrompt);
+
+    if (isSignedIn) {
+      setShowInitialModal(false);
+    }
     if (isSignedIn && !hasAnsweredPrompt && prompt) {
       localStorage.setItem("showInitialModal", JSON.stringify(false));
       setShowInitialModal(false);
@@ -118,14 +129,6 @@ export default function Home() {
     }
   }, [isSignedIn]);
 
-  // fetch posts
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/allPosts`)
-      .then((response) => response.json())
-      .then((data) => {
-        setPosts(data);
-      });
-  }, []);
 
   useEffect(() => {
     if (
@@ -173,23 +176,13 @@ export default function Home() {
     }
   }, [sendToDb]);
 
-  if (!posts) {
-    return <p>Loading...</p>;
+  if (!posts || promptLoading || !prompt) {
+    return <SkeletonPosts/>
   }
-  if (promptLoading || !prompt) {
-    return <p>Loading...</p>;
-  }
-
-  const nextModalFlow = () => {
-    setShowInitialModal(false);
-    setShowPromptModal(true);
-  };
-
-  console.log(userFromGymlink);
 
   return (
     <div className="relative overflow-y-hidden h-screen">
-      {showInitialModal && <InitialExploreModal action={nextModalFlow} />}
+      {showInitialModal && <InitialExploreModal />}
       {user && showPromptModal && (
         <PromptModal
           prompt={prompt}
@@ -200,21 +193,39 @@ export default function Home() {
           actionSkipAction={() => setShowPromptModal(false)}
         />
       )}
-      <main className="flex flex-row max-w-5xl mx-auto min-h-screen h-screen">
-        <div className="flex-1 border-r-[0.5px] border-dark-400 h-full flex flex-col items-center gap-4 pt-4">
+      <main className="flex flex-row max-w-5xl mx-auto min-h-screen h-screen relative">
+        <button onClick={() => setCreatePost(!createPost)} className="absolute bottom-4 right-4 bg-accent p-6 rounded-full">
+          <Plus className="text-light-500" size={20} />
+        </button>
+        <div className="hidden md:flex flex-1 border-r-[0.5px] border-dark-400 h-full flex-col items-center gap-4 pt-4">
           {!isSignedIn && <SignInButton mode="modal" />}
           {isSignedIn && <UserButton />}
           <a
-            href="#"
+            href="https://testflight.apple.com/join/NTM6DRrW"
             className="bg-light-500 text-dark-500 rounded-lg px-4 py-2 flex items-center"
           >
             <AppleLogo color="#000" size={16} weight="fill" />
             <span className="ml-2 font-medium">Download</span>
           </a>
         </div>
-        <div className="flex-[2] flex flex-col gap-2 px-2 overflow-y-auto h-full">
+        <div className="flex-[2] flex flex-col gap-2 px-2  h-full mt-4">
+
+        <div className="flex md:hidden flex-1 border-r-[0.5px] border-dark-400 h-full items-center justify-between gap-4 py-4">
+          {!isSignedIn && <SignInButton mode="modal" />}
+          {isSignedIn && <UserButton />}
+          <a
+            href="https://testflight.apple.com/join/NTM6DRrW"
+            className="bg-light-500 text-dark-500 rounded-lg px-4 py-2 flex items-center"
+          >
+            <AppleLogo color="#000" size={16} weight="fill" />
+            <span className="ml-2 font-medium">Download</span>
+          </a>
+        </div>
+          {createPost && userFromGymlink &&  <CreatePost userId={userFromGymlink.id} setRefreshKey={setRefreshKey} />}
+          <ul className="overflow-y-auto flex flex-col gap-2">
+            
           {posts.map((post) => (
-            <div
+            <li
               key={post.id}
               className="flex flex-col bg-dark-400 p-6 rounded-xl"
             >
@@ -222,7 +233,7 @@ export default function Home() {
                 <div className="flex flex-row items-center gap-2">
                   <div className="w-12 h-12 rounded-full overflow-hidden relative">
                     <Image
-                      src={post.user?.images[0]}
+                      src={post.user?.images[0] || "/init-modal-bg.png"}
                       className="object-cover w-full h-full"
                       alt={`${post.user.firstName} profile picture`}
                       fill
@@ -263,17 +274,23 @@ export default function Home() {
                       weight="fill"
                       color={COLORS.tertiaryDark}
                     />
-}
+                  }
                   stat={post.comments?.length}
                 />
               </div>
-            </div>
+            </li>
           ))}
+          </ul>
         </div>
-        <div className="flex-1 border-l-[0.5px] border-dark-400 flex justify-center h-full px-2 pt-4">
+        <div className="hidden md:flex flex-1 border-l-[0.5px] border-dark-400 justify-center h-full px-2 pt-4">
           {!showPromptModal && (
-            <div className="p-4 border-2 border-dark-300 border-dashed rounded-xl h-fit">
-              <p className="text-dark-300 font-bold text-xs">Share you vibes</p>
+          <div className="flex flex-col gap-2">
+              <div className="flex justify-end w-full">
+                <PromptCountdown/>
+              </div>
+
+            <div className="p-4 border-2 border-dark-400 border-dashed rounded-xl h-fit">
+              <p className="text-dark-300 font-bold text-xs">My vibe</p>
 
               {prompt && (
                 <div className="flex-[3]">
@@ -292,10 +309,17 @@ export default function Home() {
                 </a>
               )}
 
-              {answeredInitialPrompt && userFromGymlink && userFromGymlink.userPrompts &&  (
-                                
-                  <p className="text-light-500 text-base mt-4">{syncDailyPrompt(prompt.id, userFromGymlink.userPrompts)?.answer}</p>
-              )}
+              {answeredInitialPrompt &&
+                userFromGymlink &&
+                userFromGymlink.userPrompts && (
+                  <p className="text-light-500 text-base mt-4">
+                    {
+                      syncDailyPrompt(prompt.id, userFromGymlink.userPrompts)
+                        ?.answer
+                    }
+                  </p>
+                )}
+            </div>
             </div>
           )}
         </div>

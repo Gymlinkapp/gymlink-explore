@@ -35,7 +35,7 @@ const PromptCountdown = () => {
 
   return (
     <div className='bg-dark-500 py-2 px-4 rounded-full border-2 border-dashed border-dark-400 w-fit'>
-      <div className='font-ProstoOne text-tertiaryDark '>
+      <div className='font-ProstoOne text-tertiaryDark text-sm'>
         {formatTimeRemaining(timeRemaining)}
       </div>
     </div>

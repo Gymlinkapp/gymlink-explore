@@ -40,11 +40,20 @@ module.exports = {
             opacity: "1",
             transform: "scale(1)",
           },
+        },
+        skeletonLoading: {
+          "0%": {
+            opacity: "0.5",
+          },
+          "100%": {
+            opacity: "1",
+          },
         }
       },
       animation: {
         fadeIn: "fadeIn 0.5s ease-in-out",
         moveIn: "moveIn 0.5s ease-in-out",
+        skeletonLoading: "skeletonLoading 1s ease-in-out infinite",
       },
     },
   },
