@@ -119,7 +119,7 @@ export default function Home() {
   return (
     <div className="relative overflow-y-hidden h-screen">
       {showInitialModal && <InitialExploreModal action={nextModalFlow}/>}
-      {showPromptModal && <PromptModal/>}
+      {showPromptModal && <PromptModal action={() => setShowPromptModal(false)}/>}
       <main className="flex flex-row max-w-4xl mx-auto min-h-screen h-screen">
         <div className="flex-1 border-r-[0.5px] border-dark-400 h-full flex flex-col items-center gap-4 pt-4">
           <UserButton />
