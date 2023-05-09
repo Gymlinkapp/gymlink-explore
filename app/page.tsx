@@ -75,7 +75,7 @@ export default function Home() {
     user?.emailAddresses[0].emailAddress || emailAddress
   );
   const [refreshKey, setRefreshKey] = useState<number>(0);
-  const {posts, loading: postsLoading} = useAllPosts(refreshKey);
+  const { posts, loading: postsLoading } = useAllPosts(refreshKey);
 
   useEffect(() => {
     // store a value to decide if the user has seen the modals before
@@ -129,7 +129,6 @@ export default function Home() {
     }
   }, [isSignedIn]);
 
-
   useEffect(() => {
     if (
       isSignedIn &&
@@ -177,7 +176,11 @@ export default function Home() {
   }, [sendToDb]);
 
   if (!posts || postsLoading || promptLoading || !prompt) {
-    return <SkeletonPosts/>
+    return (
+      <main className="flex flex-row max-w-xl mx-auto min-h-screen h-screen relative">
+        <SkeletonPosts />
+      </main>
+    );
   }
 
   return (
@@ -198,7 +201,10 @@ export default function Home() {
         />
       )}
       <main className="flex flex-row max-w-5xl mx-auto min-h-screen h-screen relative">
-        <button onClick={() => setCreatePost(!createPost)} className="absolute bottom-20 right-4 bg-accent p-6 rounded-full">
+        <button
+          onClick={() => setCreatePost(!createPost)}
+          className="absolute bottom-20 right-4 bg-accent p-6 rounded-full"
+        >
           <Plus className="text-light-500" size={20} />
         </button>
         <div className="hidden md:flex flex-1 border-r-[0.5px] border-dark-400 h-full flex-col items-center gap-4 pt-4">
@@ -213,117 +219,124 @@ export default function Home() {
           </a>
         </div>
         <div className="flex-[2] flex flex-col gap-2 px-2  h-full mt-4">
-
-        <div className="flex md:hidden flex-1 border-r-[0.5px] border-dark-400 h-full items-center justify-between gap-4 py-4">
-          {!isSignedIn && <SignInButton mode="modal" />}
-          {isSignedIn && <UserButton />}
-          <a
-            href="https://testflight.apple.com/join/NTM6DRrW"
-            className="bg-light-500 text-dark-500 rounded-lg px-4 py-2 flex items-center"
-          >
-            <AppleLogo color="#000" size={16} weight="fill" />
-            <span className="ml-2 font-medium">Download</span>
-          </a>
-        </div>
-          {createPost && userFromGymlink &&  <CreatePost userId={userFromGymlink.id} setRefreshKey={setRefreshKey} />}
-          <ul className="overflow-y-auto flex flex-col gap-2">
-            
-          {posts.map((post: Post) => (
-            <li
-              key={post.id}
-              className="flex flex-col bg-dark-400 p-6 rounded-xl"
+          <div className="flex md:hidden flex-1 border-r-[0.5px] border-dark-400 h-full items-center justify-between gap-4 py-4">
+            {!isSignedIn && <SignInButton mode="modal" />}
+            {isSignedIn && <UserButton />}
+            <a
+              href="https://testflight.apple.com/join/NTM6DRrW"
+              className="bg-light-500 text-dark-500 rounded-lg px-4 py-2 flex items-center"
             >
-              <div className="flex justify-between items-center">
-                <div className="flex flex-row items-center gap-2">
-                  <div className="w-12 h-12 rounded-full overflow-hidden relative">
-                    <Image
-                      src={post.user?.images[0] || "/init-modal-bg.png"}
-                      className="object-cover w-full h-full"
-                      alt={`${post.user.firstName} profile picture`}
-                      fill
-                    />
+              <AppleLogo color="#000" size={16} weight="fill" />
+              <span className="ml-2 font-medium">Download</span>
+            </a>
+          </div>
+          {createPost && userFromGymlink && (
+            <CreatePost
+              userId={userFromGymlink.id}
+              setRefreshKey={setRefreshKey}
+            />
+          )}
+          <ul className="overflow-y-auto flex flex-col gap-2">
+            {posts.map((post: Post) => (
+              <li
+                key={post.id}
+                className="flex flex-col bg-dark-400 p-6 rounded-xl"
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex flex-row items-center gap-2">
+                    <div className="w-12 h-12 rounded-full overflow-hidden relative">
+                      <Image
+                        src={post.user?.images[0] || "/init-modal-bg.png"}
+                        className="object-cover w-full h-full"
+                        alt={`${post.user.firstName} profile picture`}
+                        fill
+                      />
+                    </div>
+                    <h4>{post.user.firstName}</h4>
                   </div>
-                  <h4>{post.user.firstName}</h4>
+                  <span className="text-sm text-dark-300">
+                    {new Date(post.createdAt).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
                 </div>
-                <span className="text-sm text-dark-300">
-                  {new Date(post.createdAt).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-              <p className="text-light-400 pt-6">{post.content}</p>
-              <div className="w-full flex flex-row justify-evenly mt-6">
-                <PostStat
-                  icon={
-                    <Heart
-                      size={18}
-                      weight="fill"
-                      color={COLORS.tertiaryDark}
-                    />
-                  }
-                  stat={post.likes?.length}
-                />
-                <PostStat
-                  icon={
-                    <Eye size={18} weight="fill" color={COLORS.tertiaryDark} />
-                  }
-                  stat={post.views?.length}
-                />
-                <PostStat
-                  icon={
-                    <ChatText
-                      size={18}
-                      weight="fill"
-                      color={COLORS.tertiaryDark}
-                    />
-                  }
-                  stat={post.comments?.length}
-                />
-              </div>
-            </li>
-          ))}
+                <p className="text-light-400 pt-6">{post.content}</p>
+                <div className="w-full flex flex-row justify-evenly mt-6">
+                  <PostStat
+                    icon={
+                      <Heart
+                        size={18}
+                        weight="fill"
+                        color={COLORS.tertiaryDark}
+                      />
+                    }
+                    stat={post.likes?.length}
+                  />
+                  <PostStat
+                    icon={
+                      <Eye
+                        size={18}
+                        weight="fill"
+                        color={COLORS.tertiaryDark}
+                      />
+                    }
+                    stat={post.views?.length}
+                  />
+                  <PostStat
+                    icon={
+                      <ChatText
+                        size={18}
+                        weight="fill"
+                        color={COLORS.tertiaryDark}
+                      />
+                    }
+                    stat={post.comments?.length}
+                  />
+                </div>
+              </li>
+            ))}
           </ul>
         </div>
         <div className="hidden md:flex flex-1 border-l-[0.5px] border-dark-400 justify-center h-full px-2 pt-4">
           {!showPromptModal && (
-          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2">
               <div className="flex justify-end w-full">
-                <PromptCountdown/>
+                <PromptCountdown />
               </div>
 
-            <div className="p-4 border-2 border-dark-400 border-dashed rounded-xl h-fit">
-              <p className="text-dark-300 font-bold text-xs">My vibe</p>
+              <div className="p-4 border-2 border-dark-400 border-dashed rounded-xl h-fit">
+                <p className="text-dark-300 font-bold text-xs">My vibe</p>
 
-              {prompt && (
-                <div className="flex-[3]">
-                  <p className="text-light-400 text-sm">{prompt.prompt}</p>
-                </div>
-              )}
-              {!answeredInitialPrompt && (
-                <a
-                  onClick={() => setShowPromptModal(true)}
-                  className="cursor-pointer border-2 border-dashed border-dark-300 bg-dark-400 text-light-500 rounded-lg px-4 py-2 w-full h-fit flex flex-1 items-center justify-center hover:bg-dark-500 hover:text-light-500 transition-all"
-                >
-                  <PaperPlaneTilt size={16} weight="fill" />
-                  <span className="ml-2 font-medium text-xs">
-                    Share your vibe
-                  </span>
-                </a>
-              )}
-
-              {answeredInitialPrompt &&
-                userFromGymlink &&
-                userFromGymlink.userPrompts && (
-                  <p className="text-light-500 text-base mt-4">
-                    {
-                      syncDailyPrompt(prompt.id, userFromGymlink.userPrompts)
-                        ?.answer
-                    }
-                  </p>
+                {prompt && (
+                  <div className="flex-[3]">
+                    <p className="text-light-400 text-sm">{prompt.prompt}</p>
+                  </div>
                 )}
-            </div>
+                {!answeredInitialPrompt && (
+                  <a
+                    onClick={() => setShowPromptModal(true)}
+                    className="cursor-pointer border-2 border-dashed border-dark-300 bg-dark-400 text-light-500 rounded-lg px-4 py-2 w-full h-fit flex flex-1 items-center justify-center hover:bg-dark-500 hover:text-light-500 transition-all"
+                  >
+                    <PaperPlaneTilt size={16} weight="fill" />
+                    <span className="ml-2 font-medium text-xs">
+                      Share your vibe
+                    </span>
+                  </a>
+                )}
+
+                {answeredInitialPrompt &&
+                  userFromGymlink &&
+                  userFromGymlink.userPrompts && (
+                    <p className="text-light-500 text-base mt-4">
+                      {
+                        syncDailyPrompt(prompt.id, userFromGymlink.userPrompts)
+                          ?.answer
+                      }
+                    </p>
+                  )}
+              </div>
             </div>
           )}
         </div>

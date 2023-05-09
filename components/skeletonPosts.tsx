@@ -3,8 +3,7 @@ export const SkeletonPost = () => {
       <div className="animate-pulse flex flex-col gap-4 bg-dark-400 p-6 rounded-xl">
         <div className="flex w-full justify-between items-center">
           <div className="flex items-center gap-2">
-
-          <div className="w-12 h-12 bg-dark-300 animate-pulse rounded-full"/>
+<div className="w-12 h-12 bg-dark-300 animate-pulse rounded-full"/>
           <div className="w-20 h-6 bg-dark-300 animate-pulse rounded-full"/>
           </div>
           <div className="w-14 h-3 bg-dark-300 animate-pulse rounded-full"/>
@@ -22,7 +21,10 @@ export const SkeletonPost = () => {
 }
 export default function SkeletonPosts() {
   return (
-    <div className="p-2 flex flex-col gap-2">
+    <div className="p-2 flex flex-col gap-2 w-full">
+      <SkeletonPost />
+      <SkeletonPost />
+      <SkeletonPost />
       <SkeletonPost />
       <SkeletonPost />
       <SkeletonPost />
