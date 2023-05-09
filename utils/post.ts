@@ -10,8 +10,14 @@ export type Post = {
   updatedAt: Date;
   content: string;
   userId: string;
-  tags: string[];
   comments: [];
   likes: [];
   views: [];
+  tags: typeof PostTag;
+};
+
+export let PostTag: {
+  ADVICE: 'ADVICE';
+  QUESTION: 'QUESTION';
+  GENERAL: 'GENERAL';
 };
