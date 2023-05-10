@@ -69,7 +69,7 @@ export default function Home() {
     );
     setAnsweredInitialPrompt(hasAnsweredPrompt);
 
-    if (isSignedIn) {
+    if (isSignedIn && emailAddress && firstName && lastName) {
       setShowInitialModal(false);
     }
     if (isSignedIn && !hasAnsweredPrompt && prompt) {
@@ -85,28 +85,26 @@ export default function Home() {
       localStorage.setItem("showPromptModal", JSON.stringify(false));
       setShowPromptModal(false);
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, prompt, emailAddress, firstName, lastName]);
 
   useEffect(() => {
     if (
       isSignedIn &&
       user &&
-      user.emailAddresses[0] &&
-      user.firstName &&
-      user.lastName
+      user.emailAddresses[0]
     ) {
       setEmailAddress(user.emailAddresses[0].emailAddress);
-      setFirstName(user.firstName);
-      setLastName(user.lastName);
+      setFirstName(user.firstName || "User");
+      setLastName(user.lastName || "Name");
     }
-
+    console.log(user)
     if (isSignedIn && user && !sentToDb) {
       setSendToDb(true);
     }
-  }, [isSignedIn, user, emailAddress, firstName, lastName, sentToDb]);
+  }, [isSignedIn, user, sentToDb]);
 
   useEffect(() => {
-    if (sendToDb && !sentToDb) {
+    if (sendToDb && !sentToDb && emailAddress) {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/baseWebAccount`, {
         method: "POST",
         headers: {
@@ -131,7 +129,8 @@ export default function Home() {
           console.log(error);
         });
     }
-  }, [sendToDb]);
+    console.log(emailAddress, firstName, lastName);
+  }, [sendToDb, sentToDb, emailAddress, firstName, lastName]);
 
   if (!posts || postsLoading || promptLoading || !prompt) {
     return (
