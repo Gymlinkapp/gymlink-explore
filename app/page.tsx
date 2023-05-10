@@ -13,9 +13,10 @@ import SkeletonPosts from "@/components/skeletonPosts";
 import PromptCountdown from "@/components/PromptCountdown";
 import type { Post } from "@/utils/post";
 import PostCard from "@/components/Post";
+import Banner from "@/components/Banner";
 
 export default function Home() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const {isSignedIn, user } = useUser();
   const [emailAddress, setEmailAddress] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
@@ -28,11 +29,11 @@ export default function Home() {
   const [sendToDb, setSendToDb] = useState<boolean>(false);
   const [sentToDb, setSentToDb] = useState<boolean>(false);
   const [createPost, setCreatePost] = useState<boolean>(false);
-  const { prompt, loading: promptLoading } = useGetMostRecentPrompt();
   const { user: userFromGymlink, loading: userLoading } = useGetUserByEmail(
     user?.emailAddresses[0].emailAddress || emailAddress
   );
   const [refreshKey, setRefreshKey] = useState<number>(0);
+  const { prompt, loading: promptLoading } = useGetMostRecentPrompt();
   const { posts, loading: postsLoading } = useAllPosts(refreshKey);
 
   useEffect(() => {
@@ -142,10 +143,7 @@ export default function Home() {
 
   return (
     <div className="relative overflow-y-hidden h-screen">
-      {/* <div className="fixed bottom-0 left-0 w-full h-16 bg-[url('/init-modal-bg.png')] z-40 bg-cover"> */}
-      {/*  <div className="w-full h-full bg-dark-400/50"/> */}
-      {/*   <p className="z-50">Be sure to download the official Gymlink app to experience the full features and find nearby gym goers!</p> */}
-      {/* </div> */}
+      <Banner/>
       {showInitialModal && <InitialExploreModal />}
       {user && showPromptModal && (
         <PromptModal
@@ -160,7 +158,7 @@ export default function Home() {
       <main className="flex flex-row max-w-5xl mx-auto min-h-screen h-screen relative">
         <button
           onClick={() => setCreatePost(!createPost)}
-          className="absolute bottom-20 right-4 bg-accent p-6 rounded-full"
+          className="absolute bottom-32 right-4 bg-accent p-6 rounded-full"
         >
           <Plus className="text-light-500" size={20} />
         </button>
