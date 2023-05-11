@@ -1,4 +1,9 @@
-import { ArrowRight, PaperPlane, PaperPlaneTilt } from '@phosphor-icons/react';
+import {
+  ArrowRight,
+  PaperPlane,
+  PaperPlaneTilt,
+  X,
+} from '@phosphor-icons/react';
 import PromptCountdown from './PromptCountdown';
 import { useEffect, useState } from 'react';
 import useGetMostRecentPrompt from '@/hooks/useGetMostRecentPrompt';
@@ -58,7 +63,12 @@ export default function PromptModal({
         <PromptCountdown />
         <div className='bg-dark-500 border-2 border-dark-400 border-dashed rounded-3xl w-full h-full p-6 flex flex-col'>
           <div className='flex-[2]'>
-            <p className='text-dark-300 font-bold'>Share you vibes</p>
+            <div className='w-full flex justify-between items-center'>
+              <p className='text-dark-300 font-bold'>Share you vibes</p>
+              <div onClick={actionSkipAction}>
+                <X size={20} className='cursor-pointer' />
+              </div>
+            </div>
 
             {prompt && (
               <div className='flex-[3]'>
@@ -85,15 +95,6 @@ export default function PromptModal({
               <span className='ml-2 font-medium'>Share your vibe</span>
             </a>
           </div>
-        </div>
-        <div className='flex gap-2'>
-          <a
-            onClick={actionSkipAction}
-            className='cursor-pointer border-[0.5px] border-dark-300 bg-transparent text-dark-300 rounded-lg px-4 py-2 w-fit h-fit flex items-center hover:bg-dark-500 hover:text-light-500 transition-all'
-          >
-            <ArrowRight size={16} weight='fill' />
-            <span className='ml-2 font-medium'>Skip</span>
-          </a>
         </div>
       </div>
     </div>

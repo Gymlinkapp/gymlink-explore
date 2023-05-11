@@ -141,7 +141,7 @@ export default function Home() {
     <div className='relative overflow-y-hidden h-screen'>
       <Banner />
       {showInitialModal && <InitialExploreModal />}
-      {user && true && (
+      {user && showPromptModal && (
         <PromptModal
           prompt={prompt}
           action={() => {

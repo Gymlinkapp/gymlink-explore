@@ -13,6 +13,14 @@ const PromptCountdown = () => {
       if (currentDate > targetDate) {
         targetDate.setDate(targetDate.getDate() + 1);
       }
+      const currentTimeString = currentDate.toISOString().slice(0, 19);
+      const targetTimeString = targetDate.toISOString().slice(0, 19);
+
+      if (currentTimeString === targetTimeString) {
+        console.log('zero');
+        localStorage.setItem('showPromptModal', JSON.stringify(true));
+        localStorage.setItem('answeredPrompt', JSON.stringify(false));
+      }
 
       const timeDiff = targetDate.getTime() - currentDate.getTime();
       setTimeRemaining(timeDiff);
@@ -21,6 +29,7 @@ const PromptCountdown = () => {
     calculateTimeRemaining();
 
     const interval = setInterval(calculateTimeRemaining, 1000);
+    // set showPromptModal in localStorage to true when it has reached the target date
     return () => clearInterval(interval);
   }, []);
 
